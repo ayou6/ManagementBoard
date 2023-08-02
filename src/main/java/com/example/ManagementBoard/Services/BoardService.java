@@ -15,29 +15,29 @@ public class BoardService {
     @Autowired
     BoardRepository boardRepository;
 
-    public List<Board> getAllBoards(){
+    public List<Board> getAllBoards() {
         return boardRepository.findAll();
     }
 
-    public Board getBoardById(Long boardId){
+    public Board getBoardById(Long boardId) {
         Board foundBoard = null;
         Optional<Board> optionalBoard = boardRepository.findById(boardId);
-        if (optionalBoard.isPresent()){
+        if (optionalBoard.isPresent()) {
             foundBoard = optionalBoard.get();
         }
         return foundBoard;
     }
 
 
-    public Board createBoard(@RequestBody Board newBoard){
+    public Board createBoard(@RequestBody Board newBoard) {
         return boardRepository.save(newBoard);
     }
 
-    public Board deleteBoard(@PathVariable(name = "id") Long boardId){
+    public Board deleteBoard(@PathVariable(name = "id") Long boardId) {
         Board existedBoard = getBoardById(boardId);
-       if (existedBoard !=null){
-           boardRepository.delete(existedBoard);
-       }
+        if (existedBoard != null) {
+            boardRepository.delete(existedBoard);
+        }
         return existedBoard;
     }
 

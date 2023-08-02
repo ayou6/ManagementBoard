@@ -1,17 +1,18 @@
 package com.example.ManagementBoard.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import com.example.ManagementBoard.BaseEntity.BaseEntity;
+import jakarta.persistence.*;
 import lombok.Data;
-
-import java.util.Map;
+import java.util.*;
 @Entity
 @Data
-public class Board {
+public class Board extends BaseEntity {
     @Id
     public Long boardId;
     public String title;
     public Map<String, Long> columns;
+    @OneToMany(mappedBy = "board")
+    public Set<Card> cards;
 
 
 }

@@ -1,17 +1,20 @@
 package com.example.ManagementBoard.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.Data;
+import com.example.ManagementBoard.BaseEntity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Data
-public class Card {
+public class Card extends BaseEntity {
     @Id
     public Long cardId;
     public String title;
     public String description;
     public String section;
+    @ManyToOne
+    @JoinColumn(name = "boardId")
+    public Board board;
 
 
 
