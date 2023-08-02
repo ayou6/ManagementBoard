@@ -4,6 +4,7 @@ import com.example.ManagementBoard.BaseEntity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+
 @Entity
 @Data
 public class Card extends BaseEntity {
