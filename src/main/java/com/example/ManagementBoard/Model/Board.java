@@ -11,7 +11,7 @@ public class Board {
     @Id
     public Long boardId;
     public String title;
-    public Map<String, Integer> columns;
+    public Map<String, Long> columns;
 
 
 }
