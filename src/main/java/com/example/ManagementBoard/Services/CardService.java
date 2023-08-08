@@ -38,4 +38,18 @@ public class CardService {
             cardRepository.delete(existedCard);}
         return existedCard;
     }
+
+    public Card updateCard(Card updatedCard) {
+        Long cardId = updatedCard.getCardId();
+        Optional<Card> optionalCard = cardRepository.findById(cardId);
+        if (optionalCard.isPresent()) {
+            Card existingCard = optionalCard.get();
+            existingCard.setTitle(updatedCard.getTitle());
+            existingCard.setDescription(updatedCard.getDescription());
+            existingCard.setSection(updatedCard.getSection());
+            return cardRepository.save(existingCard);
+        } else {
+            return null;
+        }
+    }
 }

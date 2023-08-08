@@ -4,6 +4,7 @@ import com.example.ManagementBoard.Model.Card;
 import com.example.ManagementBoard.Services.CardService;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,8 +37,31 @@ public class CardController {
     }
 
     @PutMapping(path = "{id}")
-    public Card deleteBoard(@PathVariable(name = "id") Long id) {
-        return cardService.deleteCard(id);
+    public Card deleteBoard(@PathVariable(name = "id") Long cardId) {
+        return cardService.deleteCard(cardId);
+    }
+
+    @PutMapping(path = "{id}")
+    public ResponseEntity<Card> updateCard(@PathVariable(name = "id") Long cardId,
+            @RequestBody Card updatedCard
+    ) {
+        Card existingCard = cardService.getCardById(cardId);
+
+        if (existingCard == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Update the card attributes
+        existingCard.setTitle(updatedCard.getTitle());
+        existingCard.setDescription(updatedCard.getDescription());
+        existingCard.setSection(updatedCard.getSection());
+
+        Card updated = cardService.updateCard(existingCard);
+        if (updated != null) {
+            return ResponseEntity.ok(updated);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 }
