@@ -33,12 +33,11 @@ public class BoardService {
         return boardRepository.save(newBoard);
     }
 
-    public Board deleteBoard(@PathVariable(name = "id") Long boardId) {
+    public void deleteBoard(@PathVariable(name = "id") Long boardId) {
         Board existedBoard = getBoardById(boardId);
         if (existedBoard != null) {
             boardRepository.delete(existedBoard);
         }
-        return existedBoard;
     }
 
 }

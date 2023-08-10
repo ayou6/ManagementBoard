@@ -19,7 +19,7 @@ public class BoardController {
     @GetMapping
     public List<Board> getAllBoards(){return boardService.getAllBoards();}
 
-    @GetMapping(path = "{id}")
+    @GetMapping(path = "/{id}")
     public Board getBoardById(@PathVariable(name = "id")Long boardId){
         Board boardFound = null;
         if (Strings.isNotBlank(String.valueOf(boardId))){
@@ -33,7 +33,7 @@ public class BoardController {
         return boardService.createBoard(newBoard);
     }
 
-    @PutMapping(path ="{id}")
-    public Board deleteBoard(@PathVariable(name = "id")Long id){return boardService.deleteBoard(id);}
+    @DeleteMapping(path ="/{id}")
+    public void deleteBoard(@PathVariable(name = "id")Long id){boardService.deleteBoard(id);}
 
 }

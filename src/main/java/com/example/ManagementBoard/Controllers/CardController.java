@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@RequestMapping("api/boards/{boardId}/cards")
+@RequestMapping("api/board/{boardId}/cards")
 @RestController
 @CrossOrigin("*")
 public class CardController {
@@ -18,50 +18,39 @@ public class CardController {
     CardService cardService;
 
     @GetMapping
-    public List<Card> getAllCards() {
-        return cardService.getAllCards();
+    public List<Card> getAllCards(@PathVariable("boardId") Long boardId) {
+        List<Card> cards = cardService.getAllCardsByBoardId(boardId);
+        return cards;
     }
 
-    @GetMapping(path = "{id}")
-    public Card getCardById(@PathVariable(name = "id") Long cardId) {
-        Card cardFound = null;
-        if (Strings.isNotBlank(String.valueOf(cardId))) {
-            cardFound = cardService.getCardById(cardId);
-        }
-        return cardFound;
+    @GetMapping(path = "/{cardId}")
+    public Card getCardById(@PathVariable("boardId") Long boardId, @PathVariable("cardId") Long cardId) {
+        Card card = cardService.getCardById(cardId, boardId);
+        return card;
     }
 
     @PostMapping
-    public Card createCard(@RequestBody Card newCard) {
-        return cardService.createCard(newCard);
+    public String createCard(@PathVariable("boardId") Long boardId, @RequestBody Card newCard) {
+        Card card = new Card();
+        card.setTitle(newCard.getTitle());
+        card.setDescription(newCard.getDescription());
+        card.setSection(newCard.getSection());
+
+        card = cardService.createCard(boardId, newCard);
+
+        return "Card has been Added";
     }
 
-    @PutMapping(path = "{id}")
-    public Card deleteBoard(@PathVariable(name = "id") Long cardId) {
-        return cardService.deleteCard(cardId);
+    @DeleteMapping("/{cardId}")
+    public String deleteCard(@PathVariable("boardId") Long boardId, @PathVariable("cardId") Long cardId) {
+        cardService.deleteCard(boardId, cardId);
+        return "Card with ID= " + cardId + " in board " + boardId;
     }
 
-    @PutMapping(path = "{id}")
-    public ResponseEntity<Card> updateCard(@PathVariable(name = "id") Long cardId,
-            @RequestBody Card updatedCard
-    ) {
-        Card existingCard = cardService.getCardById(cardId);
-
-        if (existingCard == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Update the card attributes
-        existingCard.setTitle(updatedCard.getTitle());
-        existingCard.setDescription(updatedCard.getDescription());
-        existingCard.setSection(updatedCard.getSection());
-
-        Card updated = cardService.updateCard(existingCard);
-        if (updated != null) {
-            return ResponseEntity.ok(updated);
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
+    @PutMapping("/{cardId}")
+    public Card updateCard(@PathVariable("boardId") Long boardId, @PathVariable("cardId") Long cardId, @RequestBody Card card) {
+        Card updatedCard = cardService.updateCard(boardId, cardId, card);
+        return card;
     }
 
 }

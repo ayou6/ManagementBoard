@@ -3,16 +3,33 @@ package com.example.ManagementBoard.Model;
 import com.example.ManagementBoard.BaseEntity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.*;
+@Getter
+@Setter
 @Entity
 @Data
-public class Board extends BaseEntity {
+public class Board{
     @Id
-    public Long boardId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
     public String title;
-    public Map<String, Long> columns;
+
     @OneToMany(mappedBy = "board")
-    public Set<Card> cards;
+    public List<Card> cards;
 
+    public static String getSectionNo(int sectionSelect) {
+        if (sectionSelect == 1) {
+            return "To Do";
+        } else if (sectionSelect == 2) {
+            return "In Progress";
+        } else if (sectionSelect == 3) {
+            return "Done";
+        } else {
+            return "Unknown";
 
+        }
+    }
 }

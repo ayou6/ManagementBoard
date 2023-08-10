@@ -2,6 +2,7 @@ package com.example.ManagementBoard.Services;
 
 import com.example.ManagementBoard.Model.Board;
 import com.example.ManagementBoard.Model.Card;
+import com.example.ManagementBoard.Repositories.BoardRepository;
 import com.example.ManagementBoard.Repositories.CardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,39 +18,39 @@ public class CardService {
     @Autowired
     CardRepository cardRepository;
 
-    public List<Card> getAllCards(){
-        return cardRepository.findAll();}
+    @Autowired
+    BoardService boardService;
 
-    public Card getCardById(Long cardId){
-        Card foundCard =null;
-        Optional<Card> optionalCard = cardRepository.findById(cardId);
-        if (optionalCard.isPresent()){
-            foundCard = optionalCard.get();
-        }
-        return foundCard;}
-    public Card createCard(@RequestBody Card newCard){
+    public List<Card> getAllCardsByBoardId(Long boardId){
+        return cardRepository.findByBoardId(boardId);
+    }
+
+    public Card getCardById(Long cardId, Long boardId){
+        return cardRepository.findByIdAndBoardId(cardId, boardId);
+    }
+    public Card createCard(Long boardID, Card newCard){
+        Board board = boardService.getBoardById(boardID);
+        newCard.setBoard(board);
         return cardRepository.save(newCard);
     }
 
 
-    public Card deleteCard(@PathVariable(name = "id")Long cardId){
-        Card existedCard = getCardById(cardId);
-        if (existedCard  !=null){
-            cardRepository.delete(existedCard);}
-        return existedCard;
+    public String deleteCard(Long boardId, Long cardId){
+        Card card = cardRepository.findByIdAndBoardId(cardId, boardId);
+        cardRepository.delete(card);
+        return "Deleted";
     }
 
-    public Card updateCard(Card updatedCard) {
-        Long cardId = updatedCard.getCardId();
-        Optional<Card> optionalCard = cardRepository.findById(cardId);
-        if (optionalCard.isPresent()) {
-            Card existingCard = optionalCard.get();
-            existingCard.setTitle(updatedCard.getTitle());
-            existingCard.setDescription(updatedCard.getDescription());
-            existingCard.setSection(updatedCard.getSection());
-            return cardRepository.save(existingCard);
-        } else {
-            return null;
-        }
+    public Card updateCard(Long boardId, Long cardId, Card updatedCard) {
+
+        Card card = cardRepository.findByIdAndBoardId(cardId, boardId);
+
+        card.setTitle(updatedCard.getTitle());
+        card.setDescription(updatedCard.getDescription());
+        card.setSection(updatedCard.getSection());
+
+
+
+        return cardRepository.save(card);
     }
 }
