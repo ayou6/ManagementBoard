@@ -1,6 +1,5 @@
 package com.example.ManagementBoard.Model;
 
-import com.example.ManagementBoard.BaseEntity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +9,7 @@ import lombok.*;
 @Setter
 @Entity
 @Data
-public class Card extends BaseEntity {
+public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
@@ -20,11 +19,11 @@ public class Card extends BaseEntity {
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "boardId")
     public Board board;
 
     public String getSectionName() {
         return board.getSectionNo(this.section);
+
     }
 
 

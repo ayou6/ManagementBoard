@@ -1,6 +1,5 @@
 package com.example.ManagementBoard.Model;
 
-import com.example.ManagementBoard.BaseEntity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -17,7 +16,7 @@ public class Board{
     public Long id;
     public String title;
 
-    @OneToMany(mappedBy = "board")
+    @OneToMany
     public List<Card> cards;
 
     public static String getSectionNo(int sectionSelect) {
