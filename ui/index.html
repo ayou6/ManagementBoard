@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello-like Cards with Bootstrap</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            margin-bottom: 0;
+            font-size: 1.25rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .progress-bar {
+            height: 6px;
+            border-radius: 4px;
+            transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: auto;
+        }
+
+        .btn {
+            margin-left: 10px;
+        }
+
+        .btn-success {
+            background-color: green;
+        }
+
+
+        /* The Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        /* Close Button */
+        .close {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* ... (previous styles) */
+
+        .form-container {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #addCardFormSubmit {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="text-center mb-4">Task Manager</h2>
+                <button id="addCardButton" class="btn btn-success">Add Card</button>
+                <br><br>
+                <div id="card-list" class="row"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Card</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="section">Section:</label>
+                    <input type="text" id="section" required>
+                </div>
+                <button id="addCardFormSubmit" class="btn btn-success">Add Card</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        const addCardButton = document.getElementById('addCardButton');
+        const modal = document.getElementById('myModal');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        const addCardFormSubmit = document.getElementById('addCardFormSubmit');
+
+        addCardButton.addEventListener('click', () => {
+            modal.style.display = 'block';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        addCardFormSubmit.addEventListener('click', () => {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const section = document.getElementById('section').value;
+
+            if (title && description && section) {
+                // Do something with the inputs (e.g., create a new card)
+                console.log('Title:', title);
+                console.log('Description:', description);
+                console.log('Section:', section);
+                // POST Card
+                var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+
+                var raw = JSON.stringify({
+                    "title": title,
+                    "description": description,
+                    "section": section
+                });
+
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                };
+
+                fetch("http://localhost:8080/api/board/1/cards", requestOptions)
+                    .then(response => response.json())
+                    .then(result => window.location.reload())
+                    .catch(error => console.log('error', error));
+                // End of POST Card
+                modal.style.display = 'none';
+            } else {
+                alert('Please fill out all fields (Title, Description, and Section).');
+            }
+        });
+    </script>
+
+    <script>
+        const sampleData = [
+            { id: 1, title: 'Task 1', progress: 1, description: 'Sample task 1 description', status: 'todo' },
+            { id: 2, title: 'Task 2', progress: 2, description: 'Sample task 2 description', status: 'progress' },
+            { id: 3, title: 'Task 3', progress: 3, description: 'Sample task 3 description', status: 'done' },
+        ];
+
+        function renderCards(cards) {
+            const cardList = document.getElementById('card-list');
+
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('col-md-4');
+
+                cardElement.innerHTML = `
+                    <div class="card">
+                        <div class="card-content" onclick="adjustProgress(${card.id}, event)">
+                            <h5 class="card-title">#${card.id} - ${card.title}</h5>
+                            <br>
+                            <div class="progress-container">
+                                <div id="progress-bar-${card.id}" class="progress-bar" style="width: ${card.progress * 33.33}%; background-color: ${getProgressBarColor(card.progress)};"></div>
+                            </div>
+                            <p class="card-text mt-3">${card.description}</p>
+                            <div class="btn-container">
+                                <button class="btn btn-primary">Update</button>
+                                <button class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                cardList.appendChild(cardElement);
+            });
+        }
+
+        function adjustProgress(cardId, event) {
+            const progressBar = document.getElementById(`progress-bar-${cardId}`);
+            const boundingBox = event.currentTarget.getBoundingClientRect();
+            const clickX = event.clientX - boundingBox.left;
+            const newProgress = Math.min(Math.floor((clickX / boundingBox.width) * 3) + 1, 3);
+            progressBar.style.width = `${newProgress * 33.33}%`;
+            progressBar.style.backgroundColor = getProgressBarColor(newProgress);
+        }
+
+        function getProgressBarColor(progress) {
+            switch (progress) {
+                case 1:
+                    return 'red';
+                case 2:
+                    return 'blue';
+                case 3:
+                    return 'green';
+                default:
+                    return 'gray';
+            }
+        }
+
+
+        function getAllCards() {
+            const cardList = document.getElementById('card-list');
+
+            var requestOptions = {
+                method: 'GET',
+                redirect: 'follow'
+            };
+
+            fetch("http://localhost:8080/api/board/1/cards", requestOptions)
+                .then(response => response.json()) // Parse response as JSON
+                .then(cards => {
+                    cards.forEach(card => {
+                        const cardElement = document.createElement('div');
+                        cardElement.classList.add('col-md-4');
+
+                        cardElement.innerHTML = `
+                    <div class="card">
+                        <div class="card-content" onclick="adjustProgress(${card.id}, event)">
+                            <h5 class="card-title">#${card.id} - ${card.title}</h5>
+                            <br>
+                            <div class="progress-container">
+                                <div id="progress-bar-${card.id}" class="progress-bar" style="width: ${card.progress * 33.33}%; background-color: ${getProgressBarColor(card.progress)};"></div>
+                            </div>
+                            <p class="card-text mt-3">${card.description}</p>
+                            <div class="btn-container">
+                                <button class="btn btn-primary">Update</button>
+                                <button class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                        cardList.appendChild(cardElement);
+                    });
+                })
+                .catch(error => console.log('error', error));
+        }
+
+
+        getAllCards();
+
+        renderCards(sampleData);
+    </script>
+
+</body>
+
+</html>
