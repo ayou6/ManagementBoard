@@ -33,6 +33,16 @@ public class BoardController {
         return boardService.createBoard(newBoard);
     }
 
+    @PutMapping(path = "/{id}")
+    public String updateBoard(@PathVariable(name = "id")Long boardId, @RequestBody Board updatedBoard){
+        Board board = boardService.getBoardById(boardId);
+
+        board.setTitle(updatedBoard.getTitle());
+
+        boardService.createBoard(board);
+        return "Updated";
+    }
+
     @DeleteMapping(path ="/{id}")
     public void deleteBoard(@PathVariable(name = "id")Long id){boardService.deleteBoard(id);}
 
