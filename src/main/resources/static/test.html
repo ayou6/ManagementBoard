@@ -25,7 +25,7 @@
 
         .card-content {
             padding: 1.5rem;
-            max-height: 240px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
@@ -133,7 +133,7 @@
     </div>
 
     <div id="myModal" class="modal">
-        <form class="modal-content">
+        <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Add Card</h2>
             <div class="form-container">
@@ -147,29 +147,11 @@
                 </div>
                 <div class="form-group">
                     <label for="section">Section:</label>
-                    <input type="number" id="section" required min="1" max="3">
+                    <input type="text" id="section" required>
                 </div>
                 <button id="addCardFormSubmit" class="btn btn-success">Add Card</button>
             </div>
-        </form>
-    </div>
-
-    <div id="updateForm" class="modal">
-        <form class="modal-content">
-            <span class="close">&times;</span>
-            <h2 style="color: brown;">Updating Card</h2>
-            <div class="form-container">
-                <div class="form-group">
-                    <label for="title">New Title:</label>
-                    <input type="text" id="title-update" required>
-                </div>
-                <div class="form-group">
-                    <label for="description">New Description:</label>
-                    <textarea id="description-update" rows="4" required></textarea>
-                </div>
-                <button id="upadteCardFormSubmit" class="btn btn-success">Update</button>
-            </div>
-        </form>
+        </div>
     </div>
 
 
@@ -194,6 +176,10 @@
             const section = document.getElementById('section').value;
 
             if (title && description && section) {
+                // Do something with the inputs (e.g., create a new card)
+                console.log('Title:', title);
+                console.log('Description:', description);
+                console.log('Section:', section);
                 // POST Card
                 var myHeaders = new Headers();
                 myHeaders.append("Content-Type", "application/json");
@@ -230,87 +216,93 @@
             { id: 3, title: 'Task 3', progress: 3, description: 'Sample task 3 description', status: 'done' },
         ];
 
-        function getAllCards() {
-            const cardList = document.getElementById('card-list');
-
-            var requestOptions = {
-                method: 'GET',
-                redirect: 'follow'
-            };
-
-            fetch("http://localhost:8080/api/board/1/cards", requestOptions)
-                .then(response => response.json()) // Parse response as JSON
-                .then(cards => {
-                    renderCards(cards); // Call the renderCards function to display the cards
-                })
-                .catch(error => console.log('error', error));
-        }
-
-
         function renderCards(cards) {
             const cardList = document.getElementById('card-list');
-            cardList.innerHTML = ''; // Clear existing cards
 
             cards.forEach(card => {
                 const cardElement = document.createElement('div');
                 cardElement.classList.add('col-md-4');
 
                 cardElement.innerHTML = `
-            <div class="card">
-                <div class="card-content" onclick="adjustProgress(${card.id}, event)">
-                    <h4> #${card.id}</h4>
-                    <h5 class="card-title" id="title-${card.id}">${card.title}</h5>
-                    <div class="progress-container">
-                        <div id="progress-bar-${card.id}" class="progress-bar" style="width: ${card.section * 33.33}%; background-color: ${getProgressBarColor(card.section)};"></div>
-                    </div>
-                    <p class="card-text mt-3" id="dsecription-${card.id}">${card.description}</p>
-                    <br>
-                    <div class="btn-container">
-                        <button class="btn btn-primary" onclick="updateCard(${card.id}, ${card.section})">Update</button>
-                        <button class="btn btn-danger" onclick="deleteCard(${card.id})">Delete</button>
-                    </div>
-                </div>
-            </div>
-        `;
+                <div class="card">
+    <div class="card-content" onclick="adjustProgress(${card.id}, event)">
+        <h5 class="card-title">#${card.id} - ${card.title}</h5>
+        <br>
+        <div class="progress-container">
+            <div id="progress-bar-${card.id}" class="progress-bar" style="width: ${getProgressBarWidth(card.progress)}%; background-color: ${getProgressBarColor(card.progress)};"></div>
+        </div>
+        <p class="card-text mt-3">${card.description}</p>
+        <div class="btn-container">
+            <button class="btn btn-primary">Update</button>
+            <button class="btn btn-danger">Delete</button>
+        </div>
+    </div>
+</div>
+                `;
 
                 cardList.appendChild(cardElement);
             });
         }
 
-        async function adjustProgress(cardId, event) {
-            const cardTitle = document.getElementById(`title-${cardId}`).textContent;
-            const cardDescription = document.getElementById(`dsecription-${cardId}`).textContent;
+        function adjustProgress(cardId, event) {
             const progressBar = document.getElementById(`progress-bar-${cardId}`);
             const boundingBox = event.currentTarget.getBoundingClientRect();
             const clickX = event.clientX - boundingBox.left;
-            const newProgress = Math.min(Math.floor((clickX / boundingBox.width) * 3) + 1, 3);
 
-            progressBar.style.width = `${newProgress * 33.33}%`;
-            progressBar.style.backgroundColor = getProgressBarColor(newProgress);
+            // Calculate the section based on the click position
+            const totalWidth = boundingBox.width;
+            const sectionWidth = totalWidth / 3;
+            let section = Math.floor(clickX / sectionWidth);
 
-            // Make API call to update progress in the backend
+            // Ensure the section is within valid bounds (0 to 2)
+            section = Math.max(0, Math.min(2, section));
+
+            progressBar.style.width = `${getProgressBarWidth(section + 1)}%`;
+            progressBar.style.backgroundColor = getProgressBarColor(section + 1);
+
+            // Update the card's section using an API call
+            updateCardSection(cardId, section + 1);
+        }
+        async function updateCardSection(cardId, section) {
+            // Define your API endpoint and request options here
+            const apiUrl = `http://localhost:8080/api/board/1/cards/${cardId}`;
+            const requestOptions = {
+                method: 'PUT',
+                headers: new Headers({
+                    'Content-Type': 'application/json'
+                }),
+                body: JSON.stringify({
+                    section: section
+                }),
+                redirect: 'follow'
+            };
+
             try {
-                const response = await fetch(`http://localhost:8080/api/board/1/cards/${cardId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        "title": cardTitle,
-                        "description": cardDescription,
-                        "section": newProgress
-                    })
-                });
+                const response = await fetch(apiUrl, requestOptions);
+                const result = await response.json();
+                console.log('Card section updated:', result);
 
-                if (!response.ok) {
-                    console.error('Failed to update progress in the database');
-                }
+                // You can update the UI or perform other actions here if needed
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error updating card section:', error);
             }
         }
 
-        // Function to determine progress bar color
+
+        function getProgressBarWidth(progress) {
+            const baseWidth = 10; // Adjust this value to change the base width (in percentage) of the progress bar
+            switch (progress) {
+                case 1:
+                    return baseWidth;
+                case 2:
+                    return baseWidth + 45;
+                case 3:
+                    return baseWidth + 90;
+                default:
+                    return baseWidth;
+            }
+        }
+
         function getProgressBarColor(progress) {
             switch (progress) {
                 case 1:
@@ -323,64 +315,97 @@
                     return 'gray';
             }
         }
-        getAllCards();
-    </script>
 
-    <script>
-        function deleteCard(cardID) {
+
+
+        function getAllCards(cards) {
+            const cardList = document.getElementById('card-list');
+
             var requestOptions = {
-                method: 'DELETE',
+                method: 'GET',
                 redirect: 'follow'
             };
 
-            fetch("http://localhost:8080/api/board/1/cards/" + cardID, requestOptions)
-                .then(response => response.text())
-                .then(result => location.reload())
+            fetch("http://localhost:8080/api/board/1/cards", requestOptions)
+                .then(response => response.json()) // Parse response as JSON
+                .then(cards => {
+                    cards.forEach(card => {
+                        console.log(card.section);
+                        const cardElement = document.createElement('div');
+                        cardElement.classList.add('col-md-4');
+
+                        cardElement.innerHTML = `
+                    <div class="card">
+                        <div class="card-content" onclick="adjustProgress(${card.id}, event)">
+                            <h5 class="card-title">#${card.id} - ${card.title}</h5>
+                            <br>
+                            <div class="progress-container">
+                                <div id="progress-bar-${card.section}" class="progress-bar" style="width: ${getProgressBarWidth((card.section))}%; background-color: ${getProgressBarColor(card.section)};"></div>
+                            </div>
+                            <p class="card-text mt-3">${card.description}</p>
+                            <div class="btn-container">
+                                <button class="btn btn-primary">Update</button>
+                                <button class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                        cardList.appendChild(cardElement);
+                    });
+                })
                 .catch(error => console.log('error', error));
         }
 
-        let updatingCardId = null;
-        let updatingCardSection = null;
 
+        getAllCards();
 
-        function updateCard(cardID, sectionID) {
-            updatingCardId = parseInt(cardID);
-            updatingCardSection = parseInt(sectionID);
-            const updateForm = document.getElementById("updateForm");
-            updateForm.style.display = 'block';
-        }
+        renderCards(sampleData);
+        renderCards(cards);
+    </script>
 
+    <script>
+        const progressBars = document.querySelectorAll('.progress-bar');
 
-        const updateCardFormSubmit = document.getElementById('upadteCardFormSubmit');
+        progressBars.forEach(progressBar => {
+            progressBar.addEventListener('click', async (event) => {
+                const progressBarRect = progressBar.getBoundingClientRect();
+                const clickedPosition = event.clientX - progressBarRect.left;
+                const totalWidth = progressBarRect.width;
 
-        updateCardFormSubmit.addEventListener('click', (e) => {
-            e.preventDefault();
+                // Calculate the section based on click position
+                const totalSections = 3; // Number of sections
+                const clickedSection = Math.ceil((clickedPosition / totalWidth) * totalSections);
 
-            const titleUpdated = document.getElementById('title-update').value;
-            const descriptionUpdated = document.getElementById('description-update').value;
+                // Make API call to update section in the database
+                try {
+                    const response = await fetch('your_update_api_endpoint', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ section: clickedSection })
+                    });
 
+                    if (response.ok) {
+                        // Update progress bar width and color
+                        const progress = (clickedSection / totalSections) * 100;
+                        const progressBarFill = progressBar.querySelector('.progress');
+                        progressBarFill.style.width = `${progress}%`;
 
-            var myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
-
-            var raw = JSON.stringify({
-                "title": titleUpdated,
-                "description": descriptionUpdated,
-                "section": updatingCardSection
+                        // You can define colors for each section and update the background-color
+                        // of progressBarFill based on the clickedSection value
+                        const sectionColors = ['#color1', '#color2', '#color3'];
+                        progressBarFill.style.backgroundColor = sectionColors[clickedSection - 1];
+                    } else {
+                        console.error('Failed to update section in the database');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
             });
-
-            var requestOptions = {
-                method: 'PUT',
-                headers: myHeaders,
-                body: raw
-            };
-
-            fetch("http://localhost:8080/api/board/1/cards/" + updatingCardId, requestOptions)
-                .then(response => response.json())
-                .then(result => location.reload())
-                .catch(error => console.log('error', error));
-
         });
+
     </script>
 
 </body>
